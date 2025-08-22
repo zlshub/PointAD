@@ -8,11 +8,11 @@ import open3d as o3d
 import copy
 import cv2
 
-def index_points(points, idx):
+def index_points(points, idx):           #根据索引从点云中抽取特定的点
     """
     Input:
-        points: input points data, [B, N, C]
-        idx: sample index data, [B, S]
+        points: input points data, [B, N, C]   #Batch size, 点的数量, 特征维度
+        idx: sample index data, [B, S]         #(Batch size, 要采样的点数)
     Return:
         new_points:, indexed points data, [B, S, C]
     """
@@ -26,13 +26,13 @@ def index_points(points, idx):
     new_points = points[batch_indices, idx, :]
     return new_points
 
-def farthest_point_sample(xyz, npoint):
+def farthest_point_sample(xyz, npoint):   #最远点采样（FPS），一种常用的点云下采样算法
     """
     Input:
         xyz: pointcloud data, [B, N, 3]
-        npoint: number of samples
+        npoint: number of samples    #目标采样点数
     Return:
-        centroids: sampled pointcloud index, [B, npoint]
+        centroids: sampled pointcloud index, [B, npoint]   # 采样点的索引，[B, npoint]
     """
     device = xyz.device
     B, N, C = xyz.shape
@@ -51,7 +51,7 @@ def farthest_point_sample(xyz, npoint):
 
 
 def render_and_save_point_cloud(o3d_pc_r, o3d_pc_gt_r, view_idx, cor_save_path, view_save_path, gt_save_path, point_size):
-    vis = o3d.visualization.Visualizer()
+    vis = o3d.visualization.Visualizer()             # 核心渲染函数。对一个旋转后的点云进行渲染，保存图片和对应关系
     vis.create_window(width=1036, height=1036, visible=False)
     vis.add_geometry(o3d_pc_r)
     
@@ -106,7 +106,7 @@ def render_and_save_point_cloud(o3d_pc_r, o3d_pc_gt_r, view_idx, cor_save_path, 
     vis_gt.destroy_window()
 
 
-def interpolation_points_with_gt_colors(points, gt_colors, target_size):
+def interpolation_points_with_gt_colors(points, gt_colors, target_size):     #当点云点数不足时，通过插值来增加点数，以达到目标数量
     num_points = len(points)
     num_new_points = target_size - num_points
 
@@ -141,7 +141,7 @@ def interpolation_points_with_gt_colors(points, gt_colors, target_size):
 
 
 def get_mv_images(pcd_path, txt_path, point_size, view_save_path = "./mutil_views", gt_save_path = "./mutil_views",cor_save_path = './mutil_views', file_id = "000"):
-    target_size = 336*336
+    target_size = 336*336                         #处理单个点云文件的主函数。它准备点云数据，调用采样或插值，然后生成多视角图像
     if not os.path.exists(txt_path):
         o3d_pc_o = o3d.io.read_point_cloud(pcd_path)
         points_o = np.asarray(o3d_pc_o.points)
@@ -221,7 +221,7 @@ def get_mv_images(pcd_path, txt_path, point_size, view_save_path = "./mutil_view
     #     view_idx += 1
 
        
-def process_directory(directory_path, point_size):
+def process_directory(directory_path, point_size):          #遍历目录，处理找到的所有.pcd文件
     for root, dirs, files in os.walk(directory_path):
         dirs.sort()
         files.sort()
@@ -289,3 +289,4 @@ if __name__ == "__main__":
         for folder in ["test"]:
             directory_path = os.path.join(base_directory, folder)
             process_directory(directory_path, point_size)
+
